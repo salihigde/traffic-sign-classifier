@@ -13,19 +13,18 @@ class TLClassifier(object):
     def __init__(self):
         self.sign_classes = ['Red', 'Green', 'Yellow']
 
-        self.model = load_model('saved_models/model_final_epochs_25_batch_32.h5')
+        self.model = load_model('saved_models/model.h5')
         self.graph = tf.get_default_graph()
 
-    def get_classification(self, image):
+    def get_classification(self, image, i):
         img_copy = np.copy(image)
-        img_copy = cv2.cvtColor(img_copy, cv2.COLOR_BGR2RGB)
 
         img_resize = cv2.resize(img_copy, (32, 32))
+        cv2.imwrite('sample_imgs/test'+ str(i) + '.jpg', img_resize)
+
         img_resize = np.expand_dims(img_resize, axis=0).astype('float32')
 
-        #cv2.imwrite('sample_imgs/test.jpg', img_resize)
-
-        img_resize = (img_resize / 255.) - 0.5
+        img_resize = (img_resize / 255.)
 
         with self.graph.as_default():
             predict = self.model.predict(img_resize, batch_size=1, verbose=1)
@@ -39,12 +38,13 @@ class TLClassifier(object):
 if __name__ == '__main__':
         tl_cls = TLClassifier()
         TEST_IMAGE_PATHS = glob(os.path.join('test_imgs/', '*.jpg'))
+        i=0
         for image_path in TEST_IMAGE_PATHS:
-            img = Image.open(image_path)
-            img_np = np.asarray(img, dtype="uint8" )
-            img_np_copy = np.copy(img_np)
+            img = cv2.imread(image_path)
+            img_np = np.asarray(img, dtype="uint8")
             print('Processing following file:', image_path)
             start = time.time()
-            tl_cls.get_classification(img_np_copy)
+            tl_cls.get_classification(img_np, i)
+            i += 1
             end = time.time()
             print('Classification time: ', end-start)
